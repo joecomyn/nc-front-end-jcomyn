@@ -22,7 +22,7 @@ function Articles({topic}){
 
     function RenderArticles(){
         return articlesState.map((article) => {
-          return <Article key={article.article_id} article = {article}/>
+          return <Article key={article.article_id} article = {article} topic={topic}/>
         })
     }
 
