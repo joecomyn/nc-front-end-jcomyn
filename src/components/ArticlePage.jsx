@@ -18,7 +18,7 @@ function ArticlePage({topic}){
             .then(({data: { comments }}) => {
               setArticleComments(comments);
             });
-    }, [article_id, setArticle, setArticleComments])
+    }, [article_id])
 
     function RenderArticle(){
         return <Article article={article} topic={topic}/>
