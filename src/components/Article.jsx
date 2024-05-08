@@ -36,6 +36,7 @@ function Article({article, topic}){
         }
     }
 
+
     return (
         <div className="article">
             <p>Article name: {article.title}</p>
