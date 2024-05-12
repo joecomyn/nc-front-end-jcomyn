@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
-import axios from "axios";
+import { fetchTopics } from '../utils/newsApi';
 
 function TopicSelector({topic, handleTopicState}){
 
-    const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState([]);
   useEffect(() => {
-    axios
-      .get("https://nc-final-project.onrender.com/api/topics")
-      .then(({ data: { topics } }) => {
-        setTopics(() => {
-          return topics.map((topic) => {
-            return topic.slug;
-          });
+
+    fetchTopics()
+    .then(({ data: { topics } }) => {
+      setTopics(() => {
+        return topics.map((topic) => {
+          return topic.slug;
         });
       });
-    }, [setTopics]);
+    });
+  }, [setTopics]);
 
     function RenderTopics() {
         return topics.map((topic) => {
