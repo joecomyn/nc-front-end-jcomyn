@@ -1,4 +1,3 @@
-import '../style-sheets/Article.css'
 import {Link} from 'react-router-dom'
 import Vote from './Vote'
 
@@ -29,7 +28,7 @@ function Article({article, topic}){
 
     function RenderVote(){
         if(article.body === undefined){
-            return <p className='vote-counter'>Votes: {article.votes}</p>
+            return <p>Votes: {article.votes}</p>
         }
         else{
             return <Vote vote={article.votes} article_id={article.article_id}/>
@@ -38,10 +37,10 @@ function Article({article, topic}){
 
 
     return (
-        <div className="article">
+        <div>
             <p>Article name: {article.title}</p>
             <RenderLink/>
-            <img className='article-img' src = {article.article_img_url}/>
+            <img src = {article.article_img_url}/>
             <RenderBody/>
             <p>Author: {article.author}</p>
             <RenderVote/>

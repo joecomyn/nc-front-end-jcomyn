@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
-import axios from "axios";
+import { fetchArticles, fetchArticlesByTopic } from '../utils/newsApi.jsx';
 import Article from './Article';
-import '../style-sheets/Articles.css'
 
 function Articles({topic}){
+
     const [articlesState, setArticlesState] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         if(topic === 'all'){
-            axios.get("https://nc-final-project.onrender.com/api/articles")
+            fetchArticles()
             .then(({data: {articles}}) => {
               setArticlesState(articles);
+              setIsLoading(false);
             });
         }
         else{
-            axios.get(`https://nc-final-project.onrender.com/api/articles/?topic=${topic}`)
+            fetchArticlesByTopic(topic)
             .then(({data: {articles}}) => {
               setArticlesState(articles);
+              setIsLoading(false);
             });
         }
     }, [topic])
@@ -26,11 +30,12 @@ function Articles({topic}){
         })
     }
 
+    if (isLoading) return <p>Loading...</p>
     return (
         <div>
             <p>topic: {topic}</p>
             <p>Articles:</p>
-            <div className='article-list'>
+            <div>
             <RenderArticles/>
             </div>
         </div>

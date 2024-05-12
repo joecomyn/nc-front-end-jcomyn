@@ -1,99 +1,71 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import '../style-sheets/Vote.css'
+import { patchArticleByArticleId } from "../utils/newsApi";
 import { useContext } from 'react';
 import { UserContext } from '../contexts/User';
 
 function Vote({vote, article_id}){
     const [voteState, setVoteState] = useState();
     const [err, setErr] = useState(null);
+    const [ hasVoted, setHasVoted] = useState('none');
     const { user, setUser } = useContext(UserContext);
 
     useEffect(() => {
         setVoteState(vote)
-    }, [vote])
+    }, [vote, setVoteState])
 
-    function checkIfVoted(voteType){
-        if(user.votes.hasOwnProperty(article_id)){
-            if(user.votes[article_id] === voteType){
-                return false;
+    function checkVote(value){
+        let vote = 0
+        if(value === 'upvote'){
+            if( hasVoted === 'none'){
+                setHasVoted('upvote')
+                return vote = 1;
             }
-            return true;
-        }
-        return true;
-    }
-
-    function undoVote(voteType){
-        if(user.votes.hasOwnProperty(article_id)){
-            if(user.votes[article_id] === voteType){
-                return true;
+            else if(value === hasVoted){
+                setHasVoted('none')
+                return vote = -1
             }
-            return false;
+            else if(hasVoted === 'downvote'){
+                setHasVoted('upvote')
+                return vote = 2
+            }
         }
-        return false;
+        if(value === 'downvote'){
+            if( hasVoted === 'none'){
+                setHasVoted('downvote')
+                return vote = -1;
+            }
+            else if(value === hasVoted){
+                setHasVoted('none')
+                return vote = 1
+            }
+            else if(hasVoted === 'upvote'){
+                setHasVoted('downvote')
+                return vote = -2
+            }
+        }
     }
-
-    //optimistic rendering of vote incremement
+    
+    //optimistic rendering of vote incremementw
     function handleVote(event) {
-        let votes = 0
-        event.preventDefault();
-        if(event.target.value === "upvote" && checkIfVoted("upvote")){
-            if(undoVote("downvote")){
-                votes = 2
-            }
-            else{
-                votes = 1
-            }
-            setVoteState((voteState) => voteState + 1*votes);
-            setUser((user) => {
-                let userCopy = {...user};
-                userCopy.votes[article_id] = 'upvote';
-                return userCopy
-            });
-            setErr(null);
-            axios.patch(`https://nc-final-project.onrender.com/api/articles/${article_id}`, {inc_votes: 1*votes})
-            .catch((err)=> {
-                setVoteState((voteState) => voteState - 1);
-                setUser((user) => {
-                    let userCopy = {...user};
-                    userCopy.votes[article_id] = '';
-                    return userCopy
-                });
-                setErr("Something went wrong, please try again");
-            });
-        }
-
-        if(event.target.value === "downvote" && checkIfVoted("downvote")){
-            if(undoVote("upvote")){
-                votes = 2
-            }
-            else{
-                votes = 1
-            }
-            setVoteState((voteState) => voteState - 1*votes);
-            setUser((user) => {
-                let userCopy = {...user};
-                userCopy.votes[article_id] = 'downvote';
-                return userCopy
-            });
-            setErr(null);
-            axios.patch(`https://nc-final-project.onrender.com/api/articles/${article_id}`, {inc_votes: -1*votes})
-            .catch((err)=> {
-                setVoteState((voteState) => voteState + 1);
-                setUser((user) => {
-                    let userCopy = {...user};
-                    userCopy.votes[article_id] = '';
-                    return userCopy
-                });
-                setErr("Something went wrong, please try again");
-            });
-        }
+        let vote = checkVote(event.target.value)
+        setVoteState((voteState) => {
+            return voteState + vote
+        });
+        setErr(null);
+        patchArticleByArticleId(article_id, {inc_votes: vote})
+        .catch((err)=> {
+            setVoteState((voteState) => voteState - vote);
+            setErr("Something went wrong, please try again");
+        });
     }
+
+        
+    
 
     return (
-        <div className="vote-box">
+        <div >
             {err ? <p>{err}</p> : null}
-            <p className="vote-counter">Votes: {voteState}</p>
+            <p>Votes: {voteState}</p>
             <input type="image" className="vote-icon" src="https://i.ibb.co/Vp26WSZ/downvote-icon.png" id="downvote" value="downvote" onClick={handleVote}/>
             <input type="image" className="vote-icon" src="https://i.ibb.co/Hh1JPR5/upvote-icon.png" id="upvote" value="upvote" onClick={handleVote}/>
         </div>

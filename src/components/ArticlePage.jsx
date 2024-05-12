@@ -1,30 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useParams} from 'react-router-dom';
-import axios from "axios";
 import Article from './Article';
 import Comment from './Comment';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/User';
+import { fetchArticleById, fetchCommentsByArticleId, postCommentByArticleId } from '../utils/newsApi';
 
 function ArticlePage({topic}){
     const [article, setArticle] = useState({})
     const [articleComments, setArticleComments] = useState([])
     const [commentClick, setCommentClick] = useState(false)
-    const { article_id } = useParams();
+    const [commentsAltered, setCommentsAltered] = useState(false)
     const { user, setUser } = useContext(UserContext);
+    const { article_id } = useParams();
+    const [isArticleLoading, setIsArticleLoading] = useState(true);
+    const [isCommentsLoading, setIsCommentsLoading] = useState(true);
 
     useEffect(() => {
-            axios.get(`https://nc-final-project.onrender.com/api/articles/${article_id}`)
+            fetchArticleById(article_id)
             .then(({data: { article }}) => {
               setArticle(article);
+              setIsArticleLoading(false);
             });
-            axios.get(`https://nc-final-project.onrender.com/api/articles/${article_id}/comments`)
+            fetchCommentsByArticleId(article_id)
             .then(({data: { comments }}) => {
               setArticleComments(comments);
+              setIsCommentsLoading(false);
+              setCommentsAltered(false);
             });
-    }, [article_id])
+    }, [article_id, commentsAltered])
 
     function RenderArticle(){
+        if (isArticleLoading) return <p>Loading...</p>
         return <Article article={article} topic={topic}/>
     }
 
@@ -34,7 +41,7 @@ function ArticlePage({topic}){
 
     function RenderCommentButton(){
             return (
-                <button onClick={handleCommentButton}>comment on this post</button>
+                <button onClick={handleCommentButton}>Comment</button>
             )
 
     }
@@ -45,7 +52,7 @@ function ArticlePage({topic}){
                 <div> 
                     <form onSubmit={handlePostComment}>
                         <label >Comment:</label>
-                        <input type="text" name="body"/>
+                        <textarea name="body" rows="4" cols="50"/>
                         <input type="submit" value="Submit"></input>
                     </form>
                 </div>
@@ -53,18 +60,21 @@ function ArticlePage({topic}){
         }
     }
 
+    //optimistic comment rendering
     function handlePostComment(event){
+        event.preventDefault()
         const commentBody = event.target.body.value;
-        axios.post(`https://nc-final-project.onrender.com/api/articles/${article_id}/comments`, {username: user.user, body: commentBody})
+        postCommentByArticleId(article_id, {username: user.user, body: commentBody})
         .then(({data: {postedComment}}) => {
-            console.log(postedComment)
-            setCommentClick(false)
+            setCommentClick(false);
+            setCommentsAltered(true);
         });
     }
 
     function RenderComments(){
+        if (isCommentsLoading) return <p>Loading...</p>
         return articleComments.map((comment) => {
-            return <Comment key={comment.comment_id} comment={comment}/>
+            return <Comment key={comment.comment_id} setCommentsAltered={setCommentsAltered} user={user} comment={comment}/>
         });
     }
 
